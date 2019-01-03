@@ -1,0 +1,56 @@
+node{
+    
+stage('git checkout'){
+  
+      git 'https://github.com/devopstrainingbanglore/gradle-web-app.git'
+ 
+   }
+    
+    
+stage('gradle clean build'){
+  
+      def gradlehome = tool name: 'gradle-4.9' ,type:'gradle'
+        
+      def gradlecmd  = "${gradlehome}/bin/gradle"
+   
+      sh "${gradlecmd} clean build"
+    
+    
+}
+    
+    
+stage('build docker image'){
+   
+ sh 'docker build -t karthikalla4512/gradle-web-app .'
+   
+ }
+    
+    
+stage('docker push'){
+        
+withCredentials([string(credentialsId: 'secret', variable: 'git_pwd')]) {
+            sh "docker login -u karthikalla4512 -p ${git_pwd}"
+
+}
+ 
+    
+   
+     sh 'docker  push karthikalla4512/gradle-web-app'
+        
+    
+
+    }
+    
+stage('deploy docker image'){
+       
+ def dockerun = ' docker run -d -p 8080:8080 --name gradle-web-app karthikalla4512/gradle-web-app'
+        
+sh "ssh deployment ${dockerun}"
+          
+  
+}
+        
+    
+    
+    
+}
